@@ -1,12 +1,14 @@
 use crate::{State, Data};
-use termion::clear;
+use termion::{clear, terminal_size};
 
 pub fn render(display: &mut impl std::io::Write, data: &Data, state: &State) -> Result<(), std::io::Error> {
     // clear the entire screen
     write!(display, "{}", clear::All)?;
 
     // width and height of terminal
-    let (width, height) = (120, 48);
+    let (width, height) = terminal_size()?;
+    let width = width as usize;
+    let height = height as usize;
     let info_bar_height = 2;
 
     let text_heigth = (height-info_bar_height).min(data.len());
