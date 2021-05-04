@@ -1,6 +1,10 @@
 use crate::{State, Data};
+use termion::clear;
 
 pub fn render(display: &mut impl std::io::Write, data: &Data, state: &State) -> Result<(), std::io::Error> {
+    // clear the entire screen
+    write!(display, "{}", clear::All);
+
     // width and height of terminal
     let (width, height) = (120, 60);
     let info_bar_height = 2;
@@ -19,6 +23,7 @@ pub fn render(display: &mut impl std::io::Write, data: &Data, state: &State) -> 
                 use colored::*;
                 let s = String::from(*c);
                 if state.cursor.0 == col {
+                    // TODO remove colored deps
                     std::write!(display, "{}", s.on_black())?;
                 } else {
                     std::write!(display, "{}", s.on_blue())?;
@@ -31,7 +36,7 @@ pub fn render(display: &mut impl std::io::Write, data: &Data, state: &State) -> 
     }
 
     for _ in 0..(( height -info_bar_height)-text_heigth) {
-        std::write!(display, "\n")?;
+        std::write!(display, "\n\r")?;
     }
 
     for _ in 0..width {

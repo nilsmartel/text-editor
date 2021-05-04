@@ -1,6 +1,7 @@
 mod render;
 use render::render;
 
+use termion::raw::IntoRawMode;
 use termion::event::{Key, Event};
 use termion::input::TermRead;
 use std::io::{stdin, stdout};
@@ -28,25 +29,25 @@ impl Default for Mode {
 }
 
 fn main() {
-    let mut data = vec![String::from("")];
+    let mut data = vec![SimpleString::default()];
     let mut state = State::default();
 
     let stdin = stdin();
-    let mut stdout = std::io::stdout();
-    for c in stdin.events() {
-        if c.is_err() {
-            continue
-        }
+    let mut stdout = stdout().into_raw_mode().unwrap();
+    for c in stdin.events().filter_map(|c| c.ok()) {
+        let evt = c;
 
-        let evt = c.unwrap();
-        eprintln!("{:#?}", evt);
-        // render(&mut stdout, &data, &state);
+        // here acceptors and actions would need to be coded into
+
+        render(&mut stdout, &data, &state);
     }
 }
 
+type Mapping = (Acceptor, Action);
 
 /// A test wether a pattern of user inputs matches    
-type Acceptor = Fn(Key, State, Data) -> bool;
+/// todo: this may as well be a trait, for a regex might often match these patterns 
+type Acceptor = Fn(Key, State) -> bool;
 
 /// An action to perform, yielding new state and input
 type Action = Fn(Key, State, Data) -> (State, Data);
