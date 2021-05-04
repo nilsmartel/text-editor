@@ -1,4 +1,5 @@
 use crate::{State, Data};
+use colored::Colorize;
 use termion::{clear, terminal_size};
 
 pub fn render(display: &mut impl std::io::Write, data: &Data, state: &State) -> Result<(), std::io::Error> {
@@ -15,21 +16,19 @@ pub fn render(display: &mut impl std::io::Write, data: &Data, state: &State) -> 
 
     // print text
     for (line_number, content) in data.iter().take(text_heigth).enumerate() {
-        std::write!(display, "\r{:3} ", line_number)?;
-
         let cursor_on_line = line_number == state.cursor.1;
+        std::write!(display, "\r{:3}", line_number)?;
+
+        if cursor_on_line {
+            std::write!(display, "{}", " ".on_bright_blue())?;
+        } 
 
         // print chars
         for (col,c) in content.iter().take(width-4).enumerate() {
-            if cursor_on_line {
+            if cursor_on_line  && state.cursor.0 == col{
                 use colored::*;
                 let s = String::from(*c);
-                if state.cursor.0 == col {
-                    // TODO remove colored deps
-                    std::write!(display, "{}", s.on_black())?;
-                } else {
-                    std::write!(display, "{}", s.on_blue())?;
-                }
+                std::write!(display, "{}", s.on_bright_blue())?;
                 continue;
             }
             std::write!(display, "{}", c)?;
