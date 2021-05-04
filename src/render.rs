@@ -14,15 +14,16 @@ pub fn render(display: &mut impl std::io::Write, data: &Data, state: &State) -> 
         let cursor_on_line = line_number == state.cursor.1;
 
         // print chars
-        for (col,c) in content.chars().take(width-4).enumerate() {
+        for (col,c) in content.iter().take(width-4).enumerate() {
             if cursor_on_line {
                 use colored::*;
-                let s = String::from(c);
+                let s = String::from(*c);
                 if state.cursor.0 == col {
                     std::write!(display, "{}", s.on_black())?;
                 } else {
                     std::write!(display, "{}", s.on_blue())?;
                 }
+                continue;
             }
             std::write!(display, "{}", c)?;
         }
