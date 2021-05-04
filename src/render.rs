@@ -3,17 +3,17 @@ use termion::clear;
 
 pub fn render(display: &mut impl std::io::Write, data: &Data, state: &State) -> Result<(), std::io::Error> {
     // clear the entire screen
-    write!(display, "{}", clear::All);
+    write!(display, "{}", clear::All)?;
 
     // width and height of terminal
-    let (width, height) = (120, 60);
+    let (width, height) = (120, 48);
     let info_bar_height = 2;
 
     let text_heigth = (height-info_bar_height).min(data.len());
 
     // print text
     for (line_number, content) in data.iter().take(text_heigth).enumerate() {
-        std::write!(display, "{:4}", line_number)?;
+        std::write!(display, "\r{:3} ", line_number)?;
 
         let cursor_on_line = line_number == state.cursor.1;
 
@@ -33,9 +33,11 @@ pub fn render(display: &mut impl std::io::Write, data: &Data, state: &State) -> 
             std::write!(display, "{}", c)?;
         }
 
+        std::write!(display, "\n")?;
+
     }
 
-    for _ in 0..(( height -info_bar_height)-text_heigth) {
+    for _ in 0..(( height - info_bar_height)-text_heigth) {
         std::write!(display, "\n\r")?;
     }
 
@@ -43,8 +45,8 @@ pub fn render(display: &mut impl std::io::Write, data: &Data, state: &State) -> 
         std::write!(display, "_")?;
     }
 
-    std::write!(display, "{:?}", state.mode)?;
-
+    std::write!(display, "\n\r{:?}", state.mode)?;
+    // std::write!(display, "\n\r")?;
     display.flush()
 }
 

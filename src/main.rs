@@ -34,20 +34,52 @@ fn main() {
 
     let stdin = stdin();
     let mut stdout = stdout().into_raw_mode().unwrap();
+
+    render(&mut stdout, &data, &state);
+
     for c in stdin.events().filter_map(|c| c.ok()) {
         // here acceptors and actions would need to be coded into
         match c {
+            Event::Key(Key::Esc) => {
+                state.mode = Mode::Normal;
+            }
+            Event::Key(Key::Backspace) if state.mode == Mode::Insert => {
+                if state.cursor.0 == 0 {
+                    if state.cursor.1 == 0 {
+                        continue;
+                    }
+
+                    let mut row = data.remove(state.cursor.1);
+                    let baserow = data.get_mut(state.cursor.1 - 1).unwrap();
+                    let len = baserow.len();
+
+                    state.cursor.0 = len;
+                    state.cursor.1 -= 1;
+
+                    baserow.append(&mut row);
+                    continue
+                }
+
+                data[state.cursor.1].remove(state.cursor.0 - 1);
+                state.cursor.0 -= 1;
+            },
             Event::Key(Key::Char(ch)) => match ch {
+                'x' if state.mode == Mode::Normal => {
+                    data[state.cursor.1].remove(state.cursor.0);
+                }
                 '\n' if state.mode == Mode::Insert => {
-                    data.insert(state.cursor.1, Vec::new());
+                    data.insert(state.cursor.1+1, Vec::new());
+                    state.cursor.0 = 0;
+                    state.cursor.1 += 1;
+                }
+                'o' if state.mode == Mode::Normal => {
+                    data.insert(state.cursor.1 + 1, Vec::new());
+                    state.cursor.0 = 0;
                     state.cursor.1 += 1;
                 }
                 n if state.mode == Mode::Insert => {
                     data[state.cursor.1].insert(state.cursor.0, n);
                     state.cursor.0 += 1;
-                }
-                '\t' if state.mode == Mode::Insert => {
-                    state.mode = Mode::Normal;
                 }
                 'h' if state.mode == Mode::Normal => {
                     state.cursor.0 -= 1;
@@ -55,10 +87,10 @@ fn main() {
                 'l' if state.mode == Mode::Normal => {
                     state.cursor.0 += 1;
                 }
-                'j' if state.mode == Mode::Normal => {
+                'k' if state.mode == Mode::Normal => {
                     state.cursor.1 -= 1;
                 }
-                'k' if state.mode == Mode::Normal => {
+                'j' if state.mode == Mode::Normal => {
                     state.cursor.1 += 1;
                 }
                 'i' if state.mode == Mode::Normal => {
@@ -76,6 +108,8 @@ fn main() {
 
         render(&mut stdout, &data, &state);
     }
+
+    println!("bye");
 }
 
 type Mapping = (Acceptor, Action);
